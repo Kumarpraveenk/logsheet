@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 20px;
+      background-color: #ffffff; /* Background color */
+      
+    }
+
+    h1 {
+      text-align: center;
+      color: #000000; /* Heading color */
+      background-color: #eeea19; /* Background color */
+      
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="radio"],
+    input[type="time"] {
+      margin-bottom: 10px;
+    }
+
+    .log-time {
+      display: inline-block;
+      width: 200px;
+      border: 1px solid #ccc;
+      padding: 5px;
+      cursor: pointer;
+      user-select: none;
+      background-color: #fff; /* Timer box background color */
+    }
+
+    #logList {
+      margin-top: 20px;
+    }
+
+    .log-entry {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #fff; /* Log entry background color */
+    }
+
+    .log-entry p {
+      margin: 0;
+    }
+
+    /* CSS styles for the Log Tracker layout */
+    .log-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .log-column {
+      flex-basis: calc(33% - 20px); /* Adjust this value to change column width */
+      margin-bottom: 20px;
+    }
+
+    .log-section {
+      margin-bottom: 10px;
+    }
+
+    /* Additional styles for log sections */
+    .log-section label {
+      display: block;
+      margin-bottom: 5px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+
+    #logoutButton {
+      position: absolute;
+      top: 100px;
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Log Tracker</h1>
+
+  <label for="startTime">Start Time:</label>
+  <div class="log-time" id="startTime">Click to log start time</div>
+  
+  <button id="logButton" disabled>Add Log</button>
+  
+  <div class="log-container">
+    <div class="log-column">
+      <div class="log-section">
+        <label><b>PRODUCTION QUEUES</b></label>
+        <label><input type="radio" name="issueType" value="HNPA">HNPA</label>
+        <label><input type="radio" name="issueType" value="Grep Viewer">Grep Viewer</label>
+        <label><input type="radio" name="issueType" value="APDF">APDF</label>
+        <label><input type="radio" name="issueType" value="XML">Policy Refresher</label>
+        <label><input type="radio" name="issueType" value="Others">Others</label>
+          </div>
+    </div>
+
+    <div class="log-column">
+      <div class="log-section">
+        <label><b>SYSTEM ISSUE</b></label>
+        <label><input type="radio" name="issueType" value="VPN Issue">VPN Issue</label>
+        <label><input type="radio" name="issueType" value="Content Loading Delay">Content Loading Delay</label>
+        <label><input type="radio" name="issueType" value="QC Application Issue">QC Application Issue</label>
+        <label><input type="radio" name="issueType" value="Slowness Issue">Slowness Issue</label>
+      </div>
+    </div>
+
+    <div class="log-column">
+      <div class="log-section">
+        <label><b>MEETING</b></label>
+        <label><input type="radio" name="issueType" value="Team meeting">Team meeting</label>
+        <label><input type="radio" name="issueType" value="RnR">RnR</label>
+        <label><input type="radio" name="issueType" value="Town Hall">Town Hall</label>
+        <label><input type="radio" name="issueType" value="1-1 Meeting">1-1 Meeting</label>
+      </div>
+    </div>
+  
+    <div class="log-column">
+      <div class="log-section">
+        <label><b>TRAINING</b></label>
+        <label><input type="radio" name="issueType" value="L&D Program">L&D Program</label>
+        <label><input type="radio" name="issueType" value="QC">QC</label>
+        <label><input type="radio" name="issueType" value="Process Training">Process Training</label>
+        <label><input type="radio" name="issueType" value="Policy Refresher">Policy Refresher</label>
+      </div>
+    </div>
+    
+    
+
+    <div class="log-column">
+      <div class="log-section">
+        <label><b>SUPPORTING OTHER PROCESS</b></label>
+        <label><input type="radio" name="issueType" value="QC Analysis">QC Analysis</label>
+        <label><input type="radio" name="issueType" value="-">-</label>
+        <label><input type="radio" name="issueType" value="-">-</label>
+      </div>
+    </div>
+
+    <div class="log-column">
+      <div class="log-section">
+        <label><b>OTHERS</b></label>
+        <label><input type="radio" name="issueType" value="No Volume">No Volume</label>
+        <label><input type="radio" name="issueType" value="Cab Delay">Cab Delay</label>
+        <label><input type="radio" name="issueType" value="Power Cut">Power Cut</label>
+        <label><input type="radio" name="issueType" value="Doubt Clarification">Doubt Clarification</label>
+        <label><input type="radio" name="issueType" value="OTHERS">OTHERS</label>
+        <label><input type="radio" name="issueType" value="Permission">Permission</label>
+        <label><input type="radio" name="issueType" value="Lunch Break">Lunch Break</label>
+        <label><input type="radio" name="issueType" value="Tea Break">Tea Break</label>
+      </div>
+    </div>
+  </div>
+
+  
+
+<button id="logoutButton">Logout</button>
+
+<div id="logList">
+  <!-- Log entries will be dynamically added here -->
+</div>
+
+<script>
+   // JavaScript code for the Log Tracker functionality
+  let startTime;
+  let logEntries = [];
+  let isTimerRunning = false;
+  let timerInterval;
+
+  function startTimer() {
+    timerInterval = setInterval(function () {
+      if (startTime && !isTimerRunning) {
+        const currentTime = new Date().toLocaleString();
+        const durationInSeconds = calculateDurationInSeconds(startTime, currentTime);
+        document.getElementById('duration').value = `${durationInSeconds} seconds`;
+        const durationInMinutes = Math.floor(durationInSeconds / 60);
+        document.getElementById('durationMinutes').value = `${durationInMinutes} minutes`;
+      }
+    }, 1000);
+    isTimerRunning = true;
+  }
+
+  function updateLogButtonState() {
+    const logButton = document.getElementById('logButton');
+    if (startTime && !isTimerRunning) {
+      logButton.disabled = false;
+    } else {
+      logButton.disabled = true;
+    }
+  }
+
+  function calculateDurationInSeconds(start, end) {
+    const startTime = new Date(start).getTime();
+    const endTime = new Date(end).getTime();
+    const durationInMilliseconds = endTime - startTime;
+    return Math.floor(durationInMilliseconds / 1000);
+  }
+
+  document.getElementById('startTime').addEventListener('click', function () {
+    if (!isTimerRunning) {
+      startTime = new Date().toLocaleString();
+      this.textContent = startTime;
+      updateLogButtonState();
+      startTimer();
+    }
+  });
+
+  document.getElementById('logButton').addEventListener('click', function () {
+    if (isTimerRunning && startTime) {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+
+      const selectedIssue = document.querySelector('input[name="issueType"]:checked');
+      if (selectedIssue) {
+        const logEntry = {
+          issue: selectedIssue.value,
+          startTime: startTime,
+          endTime: new Date().toLocaleString(),
+        };
+        logEntries.push(logEntry);
+
+        const logEntryDiv = document.createElement('div');
+        logEntryDiv.classList.add('log-entry');
+
+        const issuePara = document.createElement('p');
+        issuePara.textContent = `Issue: ${logEntry.issue}`;
+
+        const startTimePara = document.createElement('p');
+        startTimePara.textContent = `Start Time: ${logEntry.startTime}`;
+
+        const endTimePara = document.createElement('p');
+        endTimePara.textContent = `End Time: ${logEntry.endTime}`;
+
+        const durationPara = document.createElement('p');
+        durationPara.textContent = `Duration: ${calculateDurationInSeconds(logEntry.startTime, logEntry.endTime)} seconds`;
+
+        logEntryDiv.appendChild(issuePara);
+        logEntryDiv.appendChild(startTimePara);
+        logEntryDiv.appendChild(endTimePara);
+        logEntryDiv.appendChild(durationPara);
+
+        document.getElementById('logList').appendChild(logEntryDiv);
+
+        // Reset log time and duration
+        startTime = new Date().toLocaleString();
+        document.getElementById('startTime').textContent = startTime;
+        document.getElementById('endTime').textContent = 'Click to log end time';
+        document.getElementById('logButton').disabled = true;
+
+        // Reset the radio buttons
+        const issueTypeRadioButtons = document.querySelectorAll('input[name="issueType"]');
+        issueTypeRadioButtons.forEach((radio) => {
+          radio.checked = false;
+        });
+
+        // Restart the timer automatically
+        startTimer();
+      }
+    }
+  });
+
+  // ... (other code for logout button and initializations)
+</script>
+</body>
+</html>
