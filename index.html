@@ -57,29 +57,43 @@
 
     /* CSS styles for the Log Tracker layout */
     .log-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
+     display: flex;
+     flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
 
     .log-column {
-      flex-basis: calc(33% - 20px); /* Adjust this value to change column width */
-      margin-bottom: 20px;
-    }
+    flex-basis: calc(33% - 20px);
+    margin-bottom: 20px;
+    padding: 10px;
+}
 
     .log-section {
-      margin-bottom: 10px;
-    }
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+}
 
-    /* Additional styles for log sections */
-    .log-section label {
-      display: block;
-      margin-bottom: 5px;
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-    }
+/* Additional styles for log sections */
+  .log-section label {
+  display: block;
+  margin-bottom: 5px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
 
+/* Style for separate rows */
+.log-column .log-section {
+  flex-basis: 100%; /* Expand to full width */
+  border: none; /* Remove border */
+  background-color: transparent; /* Transparent background */
+  margin-bottom: 20px; /* Add margin to create spacing between rows */
+  padding: 0; /* Reset padding for rows */
+}
     #logoutButton {
       position: absolute;
       top: 100px;
@@ -172,102 +186,106 @@
 </div>
 
 <script>
-   // JavaScript code for the Log Tracker functionality
-let selectedIssueType = null;
-let startTime = null;
-let timerInterval = null;
-const docIdMap = {};
+    // JavaScript code for the Log Tracker functionality
+    let selectedIssueType = null;
+    let startTime = null;
+    let endTime = null;
+    let timerInterval = null;
+    const docIdMap = {};
 
-function updateLogButtonState() {
-  const logButton = document.getElementById('logButton');
-  if (selectedIssueType) {
-    logButton.disabled = false;
-  } else {
-    logButton.disabled = true;
-  }
-}
-
-document.querySelectorAll('input[name="issueType"]').forEach((radio) => {
-  radio.addEventListener('change', function () {
-    selectedIssueType = this.value;
-    updateLogButtonState();
-  });
-});
-
-document.getElementById('logButton').addEventListener('click', function () {
-  if (selectedIssueType) {
-    if (!startTime) {
-      startTimer();
-    }
-
-    let enteredDocId = '';
-    if (['HNPA', 'Grep Viewer', 'APDF', 'XML'].includes(selectedIssueType)) {
-      enteredDocId = prompt(`Enter Document ID for ${selectedIssueType}:`);
-      while (enteredDocId.length < 3) {
-        alert('Document ID must be at least 3 characters long.');
-        enteredDocId = prompt(`Enter Document ID for ${selectedIssueType}:`);
+    function updateLogButtonState() {
+      const logButton = document.getElementById('logButton');
+      if (selectedIssueType) {
+        logButton.disabled = false;
+      } else {
+        logButton.disabled = true;
       }
     }
 
-    const currentTime = new Date().toLocaleString();
-    const endTime = new Date().toLocaleString();
+    document.querySelectorAll('input[name="issueType"]').forEach((radio) => {
+      radio.addEventListener('change', function () {
+        selectedIssueType = this.value;
+        updateLogButtonState();
+      });
+    });
 
-    const logEntryDiv = document.createElement('div');
-    logEntryDiv.classList.add('log-entry');
+    document.getElementById('logButton').addEventListener('click', function () {
+      if (selectedIssueType) {
+        if (!startTime) {
+          startTimer();
+        }
 
-    const issuePara = document.createElement('p');
-    issuePara.textContent = `Issue: ${selectedIssueType}`;
+        let enteredDocId = '';
+        if (['HNPA', 'Grep Viewer', 'APDF', 'XML'].includes(selectedIssueType)) {
+          enteredDocId = prompt(`Enter Document ID for ${selectedIssueType}:`);
+          while (enteredDocId.length < 3) {
+            alert('Document ID must be at least 3 characters long.');
+            enteredDocId = prompt(`Enter Document ID for ${selectedIssueType}:`);
+          }
+        }
 
-    const docIdPara = document.createElement('p');
-    docIdPara.textContent = `Document ID: ${enteredDocId || '-'}`;
+        if (endTime) {
+          startTime = endTime;
+        } else {
+          startTime = new Date().toLocaleString();
+        }
 
-    const startTimePara = document.createElement('p');
-    startTimePara.textContent = `Start Time: ${startTime}`;
+        endTime = new Date().toLocaleString(); // Set end time for the current entry
 
-    const endTimePara = document.createElement('p');
-    endTimePara.textContent = `End Time: ${endTime}`;
+        const logEntryDiv = document.createElement('div');
+        logEntryDiv.classList.add('log-entry');
 
-    const durationPara = document.createElement('p');
-    const durationInSeconds = calculateDurationInSeconds(startTime, endTime);
-    const minutes = Math.floor(durationInSeconds / 60);
-    const seconds = durationInSeconds % 60;
-    durationPara.textContent = `Duration: ${minutes} minutes ${seconds} seconds`;
+        const issuePara = document.createElement('p');
+        issuePara.textContent = `Issue: ${selectedIssueType}`;
 
-    logEntryDiv.appendChild(issuePara);
-    logEntryDiv.appendChild(docIdPara);
-    logEntryDiv.appendChild(startTimePara);
-    logEntryDiv.appendChild(endTimePara);
-    logEntryDiv.appendChild(durationPara);
+        const docIdPara = document.createElement('p');
+        docIdPara.textContent = `Document ID: ${enteredDocId || '-'}`;
 
-    document.getElementById('logList').appendChild(logEntryDiv);
+        const startTimePara = document.createElement('p');
+        startTimePara.textContent = `Start Time: ${startTime}`;
 
-    updateLogButtonState();
-  }
-});
+        const endTimePara = document.createElement('p');
+        endTimePara.textContent = `End Time: ${endTime}`;
 
-function startTimer() {
-  startTime = new Date().toLocaleString();
-  if (timerInterval) {
-    clearInterval(timerInterval);
-  }
-  timerInterval = setInterval(updateTimer, 1000);
-}
+        const durationPara = document.createElement('p');
+        const durationInSeconds = calculateDurationInSeconds(startTime, endTime);
+        const minutes = Math.floor(durationInSeconds / 60);
+        const seconds = durationInSeconds % 60;
+        durationPara.textContent = `Duration: ${minutes} minutes ${seconds} seconds`;
 
-function updateTimer() {
-  const currentTime = new Date().getTime();
-  const elapsedTimeInSeconds = Math.floor((currentTime - new Date(startTime).getTime()) / 1000);
-  const minutes = Math.floor(elapsedTimeInSeconds / 60);
-  const seconds = elapsedTimeInSeconds % 60;
-  const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  document.getElementById('timer').textContent = `Timer: ${formattedTime}`;
-}
+        logEntryDiv.appendChild(issuePara);
+        logEntryDiv.appendChild(docIdPara);
+        logEntryDiv.appendChild(startTimePara);
+        logEntryDiv.appendChild(endTimePara);
+        logEntryDiv.appendChild(durationPara);
 
-function calculateDurationInSeconds(start, end) {
-  const startTime = new Date(start).getTime();
-  const endTime = new Date(end).getTime();
-  const durationInMilliseconds = endTime - startTime;
-  return Math.floor(durationInMilliseconds / 1000);
-}
+        document.getElementById('logList').appendChild(logEntryDiv);
+
+        updateLogButtonState();
+      }
+    });
+
+    function startTimer() {
+      startTime = new Date().toLocaleString();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const currentTime = new Date().getTime();
+      const elapsedTimeInSeconds = Math.floor((currentTime - new Date(startTime).getTime()) / 1000);
+      const minutes = Math.floor(elapsedTimeInSeconds / 60);
+      const seconds = elapsedTimeInSeconds % 60;
+      const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      document.getElementById('timer').textContent = `Timer: ${formattedTime}`;
+    }
+
+    function calculateDurationInSeconds(start, end) {
+      const startTime = new Date(start).getTime();
+      const endTime = new Date(end).getTime();
+      const durationInMilliseconds = endTime - startTime;
+      return Math.floor(durationInMilliseconds / 1000);
+    }
 </script>
 </body>
 </html>
