@@ -187,105 +187,127 @@
 
 <script>
     // JavaScript code for the Log Tracker functionality
-    let selectedIssueType = null;
-    let startTime = null;
-    let endTime = null;
-    let timerInterval = null;
-    const docIdMap = {};
+let selectedIssueType = null;
+let startTime = null;
+let endTime = null;
+let timerInterval = null;
 
-    function updateLogButtonState() {
-      const logButton = document.getElementById('logButton');
-      if (selectedIssueType) {
-        logButton.disabled = false;
-      } else {
-        logButton.disabled = true;
+function updateLogButtonState() {
+  const logButton = document.getElementById('logButton');
+  if (selectedIssueType) {
+    logButton.disabled = false;
+  } else {
+    logButton.disabled = true;
+  }
+}
+
+document.querySelectorAll('input[name="issueType"]').forEach((radio) => {
+  radio.addEventListener('change', function () {
+    selectedIssueType = this.value;
+    updateLogButtonState();
+  });
+});
+
+document.getElementById('logButton').addEventListener('click', function () {
+  if (selectedIssueType) {
+    if (!startTime) {
+      startTimer();
+    }
+
+    let enteredDocId = '';
+    if (['HNPA', 'Grep Viewer', 'APDF', 'XML'].includes(selectedIssueType)) {
+      enteredDocId = prompt(`Enter Document ID for ${selectedIssueType}:`);
+      while (enteredDocId.length < 3) {
+        alert('Document ID must be at least 3 characters long.');
+        enteredDocId = prompt(`Enter Document ID for ${selectedIssueType}:`);
       }
     }
 
-    document.querySelectorAll('input[name="issueType"]').forEach((radio) => {
-      radio.addEventListener('change', function () {
-        selectedIssueType = this.value;
-        updateLogButtonState();
-      });
-    });
-
-    document.getElementById('logButton').addEventListener('click', function () {
-      if (selectedIssueType) {
-        if (!startTime) {
-          startTimer();
-        }
-
-        let enteredDocId = '';
-        if (['HNPA', 'Grep Viewer', 'APDF', 'XML'].includes(selectedIssueType)) {
-          enteredDocId = prompt(`Enter Document ID for ${selectedIssueType}:`);
-          while (enteredDocId.length < 3) {
-            alert('Document ID must be at least 3 characters long.');
-            enteredDocId = prompt(`Enter Document ID for ${selectedIssueType}:`);
-          }
-        }
-
-        if (endTime) {
-          startTime = endTime;
-        } else {
-          startTime = new Date().toLocaleString();
-        }
-
-        endTime = new Date().toLocaleString(); // Set end time for the current entry
-
-        const logEntryDiv = document.createElement('div');
-        logEntryDiv.classList.add('log-entry');
-
-        const issuePara = document.createElement('p');
-        issuePara.textContent = `Issue: ${selectedIssueType}`;
-
-        const docIdPara = document.createElement('p');
-        docIdPara.textContent = `Document ID: ${enteredDocId || '-'}`;
-
-        const startTimePara = document.createElement('p');
-        startTimePara.textContent = `Start Time: ${startTime}`;
-
-        const endTimePara = document.createElement('p');
-        endTimePara.textContent = `End Time: ${endTime}`;
-
-        const durationPara = document.createElement('p');
-        const durationInSeconds = calculateDurationInSeconds(startTime, endTime);
-        const minutes = Math.floor(durationInSeconds / 60);
-        const seconds = durationInSeconds % 60;
-        durationPara.textContent = `Duration: ${minutes} minutes ${seconds} seconds`;
-
-        logEntryDiv.appendChild(issuePara);
-        logEntryDiv.appendChild(docIdPara);
-        logEntryDiv.appendChild(startTimePara);
-        logEntryDiv.appendChild(endTimePara);
-        logEntryDiv.appendChild(durationPara);
-
-        document.getElementById('logList').appendChild(logEntryDiv);
-
-        updateLogButtonState();
-      }
-    });
-
-    function startTimer() {
+    if (endTime) {
+      startTime = endTime;
+    } else {
       startTime = new Date().toLocaleString();
-      clearInterval(timerInterval);
-      timerInterval = setInterval(updateTimer, 1000);
     }
 
-    function updateTimer() {
-      const currentTime = new Date().getTime();
-      const elapsedTimeInSeconds = Math.floor((currentTime - new Date(startTime).getTime()) / 1000);
-      const minutes = Math.floor(elapsedTimeInSeconds / 60);
-      const seconds = elapsedTimeInSeconds % 60;
-      const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      document.getElementById('timer').textContent = `Timer: ${formattedTime}`;
-    }
+    endTime = new Date().toLocaleString(); // Set end time for the current entry
 
-    function calculateDurationInSeconds(start, end) {
-      const startTime = new Date(start).getTime();
-      const endTime = new Date(end).getTime();
-      const durationInMilliseconds = endTime - startTime;
-      return Math.floor(durationInMilliseconds / 1000);
-    }
+    const logEntryDiv = document.createElement('div');
+    logEntryDiv.classList.add('log-entry');
+
+    const issuePara = document.createElement('p');
+    issuePara.textContent = `Issue: ${selectedIssueType}`;
+
+    const docIdPara = document.createElement('p');
+    docIdPara.textContent = `Document ID: ${enteredDocId || '-'}`;
+
+    const startTimePara = document.createElement('p');
+    startTimePara.textContent = `Start Time: ${startTime}`;
+
+    const endTimePara = document.createElement('p');
+    endTimePara.textContent = `End Time: ${endTime}`;
+
+    const durationPara = document.createElement('p');
+    const durationInSeconds = calculateDurationInSeconds(startTime, endTime);
+    const minutes = Math.floor(durationInSeconds / 60);
+    const seconds = durationInSeconds % 60;
+    durationPara.textContent = `Duration: ${minutes} minutes ${seconds} seconds`;
+
+    logEntryDiv.appendChild(issuePara);
+    logEntryDiv.appendChild(docIdPara);
+    logEntryDiv.appendChild(startTimePara);
+    logEntryDiv.appendChild(endTimePara);
+    logEntryDiv.appendChild(durationPara);
+
+    document.getElementById('logList').appendChild(logEntryDiv);
+
+    updateLogButtonState();
+
+    // Send log entry data to the backend
+    const logData = {
+      selectedIssueType: selectedIssueType,
+      enteredDocId: enteredDocId,
+      startTime: startTime,
+      endTime: endTime
+    };
+
+    fetch('contect.php', { // Adjust the URL if the PHP script is located in a different directory
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(logData)
+    })
+    .then(response => response.text())
+    .then(data => {
+      console.log(data); // Output server response
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+});
+
+function startTimer() {
+  startTime = new Date().toLocaleString();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  const currentTime = new Date().getTime();
+  const elapsedTimeInSeconds = Math.floor((currentTime - new Date(startTime).getTime()) / 1000);
+  const minutes = Math.floor(elapsedTimeInSeconds / 60);
+  const seconds = elapsedTimeInSeconds % 60;
+  const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  document.getElementById('timer').textContent = `Timer: ${formattedTime}`;
+}
+
+function calculateDurationInSeconds(start, end) {
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+  const durationInMilliseconds = endTime - startTime;
+  return Math.floor(durationInMilliseconds / 1000);
+}
 </script>
 </body>
 </html>
